@@ -132,10 +132,14 @@ app.use((error, req, res, next) => {
 });
 
 mongoose
-  .connect(process.env.MONGO_DB_URL)
+  .connect(process.env.MONGO_DB_URL, {
+    dbName: 'myFirstDatabase',
+  })
   .then(() => console.log('Mongo DB Start!'))
   .catch((err) => console.error(err));
 
-app.listen(process.env.PORT || 8800, () => {
+console.log(process.env.PORT);
+
+app.listen(process.env.PORT || 8080, () => {
   console.log('Backend is running check!');
 });

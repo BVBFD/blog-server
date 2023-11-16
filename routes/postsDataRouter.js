@@ -1,23 +1,23 @@
-const express = require("express");
-require("express-async-errors");
+const express = require('express');
+require('express-async-errors');
 const {
   deletePost,
-  getAllPostsAndGetPostsByCatnames,
+  getAllPostsByQuery,
   getPostsById,
   updatePost,
   uploadPost,
-} = require("../controllers/postsDataController.js");
+} = require('../controllers/postsDataController.js');
 
 const router = express.Router();
 
-router.get("/", getAllPostsAndGetPostsByCatnames);
+router.get('/', getAllPostsByQuery);
 
-router.get("/:id", getPostsById);
+router.get('/:id', getPostsById);
 
-router.post("/", uploadPost);
+router.post('/', uploadPost);
 
-router.put("/:id", updatePost);
+router.put('/:id', updatePost);
 
-router.delete("/:id", deletePost);
+router.delete('/:id', deletePost);
 
 module.exports = router;

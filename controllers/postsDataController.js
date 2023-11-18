@@ -2,11 +2,10 @@ const PostDatasModel = require('../models/postDatasModel.js');
 
 const getAllPostsByQuery = async (req, res, next) => {
   const catName = req.query.cat ? decodeURIComponent(req.query.cat) : null;
-  const text = req.query.text;
+  const text = req.query.text ? decodeURIComponent(req.query.text) : null;
   const page = req.query.page;
 
   try {
-    let foundPosts;
     // 한페이지당 나오는 포스트 갯수
     const pageSize = 4;
     // 클릭한 page 숫자에 따라 계산할 예정
@@ -14,7 +13,9 @@ const getAllPostsByQuery = async (req, res, next) => {
     // db에 있는 포스트 역순으로 재배치
     const sortOptions = { createdAt: -1 };
 
-    const query = {};
+    let query = {};
+
+    let totalPostsCount;
 
     if (catName) {
       query.catName = catName;
@@ -30,14 +31,15 @@ const getAllPostsByQuery = async (req, res, next) => {
       skipAmount = (page - 1) * pageSize;
     }
 
-    foundPosts = await PostDatasModel.find(query)
+    // 해당 쿼리에 맞는 포스트를 찾음
+    let foundPosts = await PostDatasModel.find(query)
       .sort(sortOptions)
-      // 필요한 포스트 갯수만큼 skip하고 그 다음 포스트부터 찾음.
       .skip(skipAmount)
-      // 몇 개만 클라이언트측으로 보낼건지 결정
       .limit(pageSize);
 
-    res.status(200).json(foundPosts);
+    totalPostsCount = await PostDatasModel.countDocuments(query);
+
+    res.status(200).json({ posts: foundPosts, totalPostsCount });
   } catch (err) {
     res.status(500).json(err);
   }

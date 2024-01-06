@@ -12,7 +12,7 @@ const cookieParser = require("cookie-parser");
 
 const postsDataRouter = require("./routes/postsDataRouter.js");
 const loginDatasRouter = require("./routes/loginDatasRouter.js");
-const ContactDatasModel = require("./models/contactDatasModel.js");
+const ContactDatasModel = require("./models/tokenDatasModel.js");
 
 dotenv.config();
 
@@ -95,7 +95,7 @@ app.use(
   })
 );
 app.use(morgan("tiny"));
-app.use(cookieParser());
+app.use(cookieParser("lsevina126CookieParsersecretkey"));
 
 app.get("/lee", (req, res, next) => {
   console.log("Hey this is initial test code!");

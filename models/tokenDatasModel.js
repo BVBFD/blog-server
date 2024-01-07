@@ -6,6 +6,10 @@ const TokenDatasSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    editable: {
+      type: Boolean,
+      required: true,
+    },
     accessToken: {
       type: String,
       required: true,

@@ -6,19 +6,16 @@ const verifyToken = async (req, res, next) => {
     const accessToken = req.cookies.accessToken;
     const refreshToken = req.cookies.refreshToken;
 
-    console.log(accessToken);
-    console.log(refreshToken);
-
     let user;
     try {
       // accessToken 검증
-      user = jwt.verify(accessToken, "lsevina126jwtsecretkey");
+      user = jwt.verify(accessToken, `${process.env.JWT_SECRET_KEY}`);
     } catch (error) {
       // accessToken 유효기간 혹은 쿠키기간 만료시 에러
       // refreshToken 담는 cookie가 만료되었을 경우
       if (refreshToken === undefined) {
         await tokenDatasModel.findOneAndDelete({
-          userId: req.body.userId,
+          userId: req.body.userId || req.body.author,
         });
         // 쿠키 유효기간 만료시 에러 클라이언트에게 보내서 로그아웃 신호 줄것
         return res
@@ -33,7 +30,7 @@ const verifyToken = async (req, res, next) => {
 
       // refreshToken 검증
       try {
-        jwt.verify(storedToken.refreshToken, "lsevina126jwtsecretkey");
+        jwt.verify(storedToken.refreshToken, `${process.env.JWT_SECRET_KEY}`);
       } catch (error) {
         if (error.message === "jwt expired") {
           await tokenDatasModel.findOneAndDelete({
@@ -51,14 +48,14 @@ const verifyToken = async (req, res, next) => {
       if (refreshToken && refreshToken === storedToken.refreshToken) {
         const newAccessToken = jwt.sign(
           { userId: storedToken.userId },
-          "lsevina126jwtsecretkey",
-          { expiresIn: "3s" } // 수정: expiresIn을 적절한 값으로 변경
+          `${process.env.JWT_SECRET_KEY}`,
+          { expiresIn: "3h" }
         );
         const newRefreshToken = jwt.sign(
           { userId: storedToken.userId },
-          "lsevina126jwtsecretkey",
+          `${process.env.JWT_SECRET_KEY}`,
           {
-            expiresIn: "4s",
+            expiresIn: "1d",
           }
         );
 
@@ -74,11 +71,19 @@ const verifyToken = async (req, res, next) => {
         );
 
         // cookie도 업데이트
-        res.cookie(
-          "token",
-          { accessToken: newAccessToken, refreshToken: newRefreshToken },
-          { httpOnly: true }
-        );
+        res.cookie("accessToken", accessToken, {
+          // 3시간동안 유효
+          maxAge: 3 * 60 * 60 * 1000,
+          httpOnly: true,
+          secure: true,
+        });
+
+        res.cookie("refreshToken", refreshToken, {
+          // 하루동안 유효
+          maxAge: 24 * 60 * 60 * 1000,
+          httpOnly: true,
+          secure: true,
+        });
 
         // refresh 토근 검증 통과 그리고 새로운 accessToken, refreshToken 발급받고 다음 로직으로 넘어간다.
         req.user = { userId: storedToken.userId };

@@ -4,14 +4,14 @@ const jwt = require("jsonwebtoken");
 const TokenDatasModel = require("../models/tokenDatasModel.js");
 
 const generateAccessToken = (userId) => {
-  return jwt.sign({ userId }, "lsevina126jwtsecretkey", {
-    expiresIn: "3s",
+  return jwt.sign({ userId }, `${process.env.JWT_SECRET_KEY}`, {
+    expiresIn: "3h",
   });
 };
 
 const generateRefreshToken = (userId) => {
-  return jwt.sign({ userId }, "lsevina126jwtsecretkey", {
-    expiresIn: "4s",
+  return jwt.sign({ userId }, `${process.env.JWT_SECRET_KEY}`, {
+    expiresIn: "1d",
   });
 };
 
@@ -39,13 +39,17 @@ const login = async (req, res, next) => {
     await newTokenData.save();
 
     res.cookie("accessToken", accessToken, {
-      maxAge: 3000,
+      // 3시간동안 유효
+      maxAge: 3 * 60 * 60 * 1000,
       httpOnly: true,
+      secure: true,
     });
 
     res.cookie("refreshToken", refreshToken, {
-      maxAge: 4000,
+      // 하루동안 유효
+      maxAge: 24 * 60 * 60 * 1000,
       httpOnly: true,
+      secure: true,
     });
 
     res.status(200).json({ sendLoginData });
@@ -79,6 +83,31 @@ const signUp = async (req, res, next) => {
     });
     const savedNewLoginData = await newLoginData.save();
     const { password, ...data } = savedNewLoginData._doc;
+
+    const accessToken = generateAccessToken(data.userId);
+    const refreshToken = generateRefreshToken(data.userId);
+
+    const newTokenData = new TokenDatasModel({
+      userId: data.userId,
+      accessToken,
+      refreshToken,
+    });
+    await newTokenData.save();
+
+    res.cookie("accessToken", accessToken, {
+      // 3시간동안 유효
+      maxAge: 3 * 60 * 60 * 1000,
+      httpOnly: true,
+      secure: true,
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+      // 하루동안 유효
+      maxAge: 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      secure: true,
+    });
+
     res.status(201).json({ data });
   } catch (err) {
     res.status(409).json("This Id already existed!");

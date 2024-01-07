@@ -16,46 +16,8 @@ const ContactDatasModel = require("./models/tokenDatasModel.js");
 
 dotenv.config();
 
-async function dbConnect() {
-  let maxRetries = 10;
-  let currentRetry = 0;
-
-  while (currentRetry < maxRetries) {
-    try {
-      await mongoose.connect(`${process.env.MONGO_DB_URL}`, {
-        dbName: "myFirstDatabase",
-        connectTimeoutMS: 1000,
-        serverSelectionTimeoutMS: 1000,
-        maxPoolSize: 10,
-        minPoolSize: 1,
-        keepAlive: true,
-        keepAliveInitialDelay: 30000,
-      });
-
-      console.log("MongoDB connected successfully!!");
-      break;
-    } catch (error) {
-      currentRetry++;
-      console.log("MongoDB connect failed!!");
-      // Add some delay before retrying
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    }
-  }
-
-  if (currentRetry === maxRetries) {
-    // Handle the case where max retries are reached
-    console.error("Max retries reached. MongoDB connection failed.");
-  }
-}
-
-dbConnect();
-
 const app = express();
 app.use(express.json());
-
-app.listen(process.env.PORT || 8800, () => {
-  console.log("Backend is running check!");
-});
 
 const cspOptions = {
   directives: {
@@ -95,7 +57,7 @@ app.use(
   })
 );
 app.use(morgan("tiny"));
-app.use(cookieParser("lsevina126CookieParsersecretkey"));
+app.use(cookieParser(`${process.env.COOKIE_PARSER_SECRET_KEY}`));
 
 app.get("/lee", (req, res, next) => {
   console.log("Hey this is initial test code!");
@@ -167,4 +129,15 @@ app.use((req, res, next) => {
 app.use((error, req, res, next) => {
   console.log(error);
   res.sendStatus(500);
+});
+
+mongoose
+  .connect(process.env.MONGO_DB_URL, {
+    dbName: `${process.env.MONGO_DB_DATABASE_NAME}`,
+  })
+  .then(() => console.log("Mongo DB Start!"))
+  .catch((err) => console.error(err));
+
+app.listen(process.env.PORT || 8800, () => {
+  console.log("Backend is running check!");
 });

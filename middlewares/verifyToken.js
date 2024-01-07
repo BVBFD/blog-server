@@ -6,9 +6,6 @@ const verifyToken = async (req, res, next) => {
     const accessToken = req.cookies.accessToken;
     const refreshToken = req.cookies.refreshToken;
 
-    console.log(accessToken);
-    console.log(refreshToken);
-
     let user;
     try {
       // accessToken 검증

@@ -43,6 +43,7 @@ const login = async (req, res, next) => {
       maxAge: 10800000,
       httpOnly: true,
       secure: true,
+      sameSite: "None",
     });
 
     res.cookie("refreshToken", refreshToken, {
@@ -50,6 +51,7 @@ const login = async (req, res, next) => {
       maxAge: 259200000,
       httpOnly: true,
       secure: true,
+      sameSite: "None",
     });
 
     res.status(200).json({ sendLoginData });
@@ -99,6 +101,7 @@ const signUp = async (req, res, next) => {
       maxAge: 10800000,
       httpOnly: true,
       secure: true,
+      sameSite: "None",
     });
 
     res.cookie("refreshToken", refreshToken, {
@@ -106,6 +109,7 @@ const signUp = async (req, res, next) => {
       maxAge: 259200000,
       httpOnly: true,
       secure: true,
+      sameSite: "None",
     });
 
     res.status(201).json({ data });

@@ -6,6 +6,9 @@ const verifyToken = async (req, res, next) => {
     const accessToken = req.cookies.accessToken;
     const refreshToken = req.cookies.refreshToken;
 
+    console.log(accessToken);
+    console.log(refreshToken);
+
     let user;
     try {
       // accessToken 검증
@@ -76,6 +79,7 @@ const verifyToken = async (req, res, next) => {
           maxAge: 10800000,
           httpOnly: true,
           secure: true,
+          sameSite: "None",
         });
 
         res.cookie("refreshToken", refreshToken, {
@@ -83,6 +87,7 @@ const verifyToken = async (req, res, next) => {
           maxAge: 259200000,
           httpOnly: true,
           secure: true,
+          sameSite: "None",
         });
 
         // refresh 토근 검증 통과 그리고 새로운 accessToken, refreshToken 발급받고 다음 로직으로 넘어간다.

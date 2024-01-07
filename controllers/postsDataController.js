@@ -32,16 +32,13 @@ const getAllPostsByQuery = async (req, res, next) => {
     }
 
     // 해당 쿼리에 맞는 포스트를 찾음
-    let foundPosts = await PostDatasModel.find(query)
-      .sort(sortOptions)
-      .skip(skipAmount)
-      .limit(pageSize);
+    let foundPosts = await PostDatasModel.find(query).sort(sortOptions).skip(skipAmount).limit(pageSize);
 
     totalPostsCount = await PostDatasModel.countDocuments(query);
 
-    res.status(200).json({ posts: foundPosts, totalPostsCount });
+    return res.status(200).json({ posts: foundPosts, totalPostsCount });
   } catch (err) {
-    res.status(500).json(err);
+    return res.status(500).json(err);
   }
 };
 
@@ -66,17 +63,16 @@ const getPostsById = async (req, res, next) => {
       // _doc 프러퍼티
       // 이번에는 마술사가 있는 상자(인스턴스)를 그냥 같은 모양의 다른 상자(JavaScript 객체)로 바꾸는 것처럼 생각해봅시다.
       // ._doc은 특별한 처리 없이 그냥 같은 내용물의 상자를 주는 것이에요. 특별한 변화 없이 그냥 필요한 정보만 그대로 가져와요.
-      const { text, catName, author, createdAt, updatedAt, ...others } =
-        foundPost.toObject();
+      const { text, catName, author, createdAt, updatedAt, ...others } = foundPost.toObject();
 
       // 쉽게 말하면, .toObject()는 뭔가 변화를 주고 싶을 때 사용하는 메서드이고,
       // ._doc은 그냥 필요한 정보만 가져오고 싶을 때 사용하는 프로퍼티입니다.
-      res.status(200).json(others);
+      return res.status(200).json(others);
     } else {
-      res.status(200).json(foundPost);
+      return res.status(200).json(foundPost);
     }
   } catch (err) {
-    res.status(500).json(err);
+    return res.status(500).json(err);
   }
 };
 
@@ -91,9 +87,9 @@ const uploadPost = async (req, res, next) => {
     });
 
     const savedNewPost = await newPost.save();
-    res.status(201).json({ savedNewPost });
+    return res.status(201).json({ savedNewPost });
   } catch (err) {
-    res.status(500).json(err);
+    return res.status(500).json(err);
   }
 };
 
@@ -108,18 +104,14 @@ const updatePost = async (req, res, next) => {
     }
 
     if (req.body.author === foundPost.author) {
-      const updatedPost = await PostDatasModel.findByIdAndUpdate(
-        paramId,
-        req.body,
-        { returnOriginal: false }
-      );
+      const updatedPost = await PostDatasModel.findByIdAndUpdate(paramId, req.body, { returnOriginal: false });
 
-      res.status(201).json(updatedPost);
+      return res.status(201).json(updatedPost);
     } else {
-      res.status(401).json('You can update and delete your own posts!');
+      return res.status(401).json('You can update and delete your own posts!');
     }
   } catch (err) {
-    res.status(401).json(err);
+    return res.status(401).json(err);
   }
 };
 
@@ -135,12 +127,12 @@ const deletePost = async (req, res, next) => {
 
     if (req.body.author === foundPost.author) {
       await foundPost.remove();
-      res.status(204).json('The Post has been deleted!');
+      return res.status(204).json('The Post has been deleted!');
     } else {
-      res.status(404).json('You can update and delete your own posts!');
+      return res.status(404).json('You can update and delete your own posts!');
     }
   } catch (err) {
-    res.status(500).json(err);
+    return res.status(500).json(err);
   }
 };
 

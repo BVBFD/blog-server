@@ -1,17 +1,17 @@
-const LoginDatasModel = require("../models/loginDatasModel.js");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const TokenDatasModel = require("../models/tokenDatasModel.js");
+const LoginDatasModel = require('../models/loginDatasModel.js');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const TokenDatasModel = require('../models/tokenDatasModel.js');
 
 const generateAccessToken = (userId) => {
   return jwt.sign({ userId }, `${process.env.JWT_SECRET_KEY}`, {
-    expiresIn: "3h",
+    expiresIn: '3h',
   });
 };
 
 const generateRefreshToken = (userId) => {
   return jwt.sign({ userId }, `${process.env.JWT_SECRET_KEY}`, {
-    expiresIn: "1d",
+    expiresIn: '1d',
   });
 };
 
@@ -20,12 +20,17 @@ const login = async (req, res, next) => {
     const foundLoginData = await LoginDatasModel.findOne({
       userId: req.body.userId,
     });
-    !foundLoginData && res.status(401).json("Invalid Id and Pwd!");
-    const checkedPwd = await bcrypt.compare(
-      req.body.password,
-      foundLoginData.password
-    );
-    !checkedPwd && res.status(401).json("Invalid Id and Pwd!");
+
+    if (!foundLoginData) {
+      return res.status(401).json('Invalid Id and Pwd!');
+    }
+
+    const checkedPwd = await bcrypt.compare(req.body.password, foundLoginData.password);
+
+    if (!checkedPwd) {
+      return res.status(401).json('Invalid Id and Pwd!');
+    }
+
     const { password, ...sendLoginData } = foundLoginData._doc;
 
     const accessToken = generateAccessToken(sendLoginData.userId);
@@ -38,25 +43,25 @@ const login = async (req, res, next) => {
     });
     await newTokenData.save();
 
-    res.cookie("accessToken", accessToken, {
+    res.cookie('accessToken', accessToken, {
       // 3시간동안 유효
       maxAge: 10800000,
       httpOnly: true,
       secure: true,
-      sameSite: "None",
+      sameSite: 'None',
     });
 
-    res.cookie("refreshToken", refreshToken, {
+    res.cookie('refreshToken', refreshToken, {
       // 하루동안 유효
       maxAge: 259200000,
       httpOnly: true,
       secure: true,
-      sameSite: "None",
+      sameSite: 'None',
     });
 
-    res.status(200).json({ sendLoginData });
+    return res.status(200).json({ sendLoginData });
   } catch (err) {
-    res.status(500).json("server errors!");
+    return res.status(500).json('server errors!');
   }
 };
 
@@ -66,9 +71,9 @@ const logOut = async (req, res, next) => {
     const foundTokenData = await TokenDatasModel.findOneAndDelete({
       userId,
     });
-    res.status(200).json(foundTokenData);
+    return res.status(200).json(foundTokenData);
   } catch (error) {
-    res.status(500).json("server errors!");
+    return res.status(500).json('server errors!');
   }
 };
 
@@ -96,25 +101,25 @@ const signUp = async (req, res, next) => {
     });
     await newTokenData.save();
 
-    res.cookie("accessToken", accessToken, {
+    res.cookie('accessToken', accessToken, {
       // 3시간동안 유효
       maxAge: 10800000,
       httpOnly: true,
       secure: true,
-      sameSite: "None",
+      sameSite: 'None',
     });
 
-    res.cookie("refreshToken", refreshToken, {
+    res.cookie('refreshToken', refreshToken, {
       // 하루동안 유효
       maxAge: 259200000,
       httpOnly: true,
       secure: true,
-      sameSite: "None",
+      sameSite: 'None',
     });
 
-    res.status(201).json({ data });
+    return res.status(201).json({ data });
   } catch (err) {
-    res.status(409).json("This Id already existed!");
+    return res.status(409).json('This Id already existed!');
   }
 };
 
@@ -125,7 +130,11 @@ const update = async (req, res, next) => {
     const foundOriginData = await LoginDatasModel.findOne({
       userId: req.body.userId,
     });
-    !foundOriginData && res.status(401).send("You can only set your own data!");
+
+    if (!foundOriginData) {
+      return res.status(401).send('You can only set your own data!');
+    }
+
     try {
       const updatedLoginData = await LoginDatasModel.findByIdAndUpdate(
         foundOriginData.id,
@@ -138,15 +147,19 @@ const update = async (req, res, next) => {
         { returnOriginal: false }
       );
       const { password, ...sendUpdatedLoginData } = updatedLoginData._doc;
-      res.status(201).json({ sendUpdatedLoginData });
+      return res.status(201).json({ sendUpdatedLoginData });
     } catch (err) {
-      res.status(401).send(err);
+      return res.status(401).send(err);
     }
   } else {
     const foundOriginData = await LoginDatasModel.findOne({
       userId: req.body.userId,
     });
-    !foundOriginData && res.status(401).send("You can only set your own data!");
+
+    if (!foundOriginData) {
+      return res.status(401).send('You can only set your own data!');
+    }
+
     try {
       const updatedLoginData = await LoginDatasModel.findByIdAndUpdate(
         foundOriginData.id,
@@ -158,9 +171,9 @@ const update = async (req, res, next) => {
         { returnOriginal: false }
       );
       const { password, ...sendUpdatedLoginData } = updatedLoginData._doc;
-      res.status(201).json({ sendUpdatedLoginData });
+      return res.status(201).json({ sendUpdatedLoginData });
     } catch (err) {
-      res.status(401).send(err);
+      return res.status(401).send(err);
     }
   }
 };
@@ -170,15 +183,19 @@ const remove = async (req, res, next) => {
     const foundUserData = await LoginDatasModel.findOne({
       userId: req.body.userId,
     });
-    !foundUserData && res.status(400).json("Bad request!");
+
+    if (!foundUserData) {
+      return res.status(400).json('Bad request!');
+    }
+
     if (req.body.userId === foundUserData.userId) {
       foundUserData.delete();
-      res.status(204).json("UserData has been deleted!");
+      return res.status(204).json('UserData has been deleted!');
     } else {
-      res.status(401).json("You can delete own your login data!");
+      return res.status(401).json('You can delete own your login data!');
     }
   } catch (err) {
-    console.log(err);
+    return res.status(401).json(err);
   }
 };
 

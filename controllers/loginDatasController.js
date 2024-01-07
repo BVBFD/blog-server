@@ -42,14 +42,12 @@ const login = async (req, res, next) => {
       // 3시간동안 유효
       maxAge: 3 * 60 * 60 * 1000,
       httpOnly: true,
-      secure: true,
     });
 
     res.cookie("refreshToken", refreshToken, {
       // 하루동안 유효
       maxAge: 24 * 60 * 60 * 1000,
       httpOnly: true,
-      secure: true,
     });
 
     res.status(200).json({ sendLoginData });
@@ -98,14 +96,12 @@ const signUp = async (req, res, next) => {
       // 3시간동안 유효
       maxAge: 3 * 60 * 60 * 1000,
       httpOnly: true,
-      secure: true,
     });
 
     res.cookie("refreshToken", refreshToken, {
       // 하루동안 유효
       maxAge: 24 * 60 * 60 * 1000,
       httpOnly: true,
-      secure: true,
     });
 
     res.status(201).json({ data });

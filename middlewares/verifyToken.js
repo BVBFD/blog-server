@@ -75,14 +75,12 @@ const verifyToken = async (req, res, next) => {
           // 3시간동안 유효
           maxAge: 3 * 60 * 60 * 1000,
           httpOnly: true,
-          secure: true,
         });
 
         res.cookie("refreshToken", refreshToken, {
           // 하루동안 유효
           maxAge: 24 * 60 * 60 * 1000,
           httpOnly: true,
-          secure: true,
         });
 
         // refresh 토근 검증 통과 그리고 새로운 accessToken, refreshToken 발급받고 다음 로직으로 넘어간다.

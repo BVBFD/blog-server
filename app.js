@@ -46,12 +46,7 @@ app.use(
 
 app.use(
   cors({
-    origin: [
-      `http://localhost:3000`,
-      `https://www.lsevina126.asia`,
-      "https://lsevina126.netlify.app",
-      "https://9671-113-131-240-155.jp.ngrok.io",
-    ],
+    origin: [`http://localhost:3000`, "https://lsevina126.netlify.app"],
     optionsSuccessStatus: 200,
     credentials: true,
   })

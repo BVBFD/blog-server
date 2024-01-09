@@ -16,75 +16,77 @@ const generateRefreshToken = (userInfo) => {
 };
 
 const login = async (req, res, next) => {
-  try {
-    const foundLoginData = await LoginDatasModel.findOne({
-      userId: req.body.userId,
-    });
+  const foundLoginData = await LoginDatasModel.findOne({
+    userId: req.body.userId,
+  });
 
-    if (!foundLoginData) {
-      return res.status(401).json("Invalid Id and Pwd!");
-    }
-
-    const checkedPwd = await bcrypt.compare(
-      req.body.password,
-      foundLoginData.password
-    );
-
-    if (!checkedPwd) {
-      return res.status(401).json("Invalid Id and Pwd!");
-    }
-
-    const { password, ...sendLoginData } = foundLoginData._doc;
-
-    const accessToken = generateAccessToken({
-      userId: sendLoginData.userId,
-      editable: sendLoginData.editable,
-    });
-    const refreshToken = generateRefreshToken({
-      userId: sendLoginData.userId,
-      editable: sendLoginData.editable,
-    });
-
-    const newTokenData = new TokenDatasModel({
-      userId: sendLoginData.userId,
-      editable: sendLoginData.editable,
-      accessToken,
-      refreshToken,
-    });
-    await newTokenData.save();
-
-    res.cookie("accessToken", accessToken, {
-      // 3시간동안 유효
-      maxAge: 10800000,
-      httpOnly: true,
-      secure: true,
-      sameSite: "None",
-    });
-
-    res.cookie("refreshToken", refreshToken, {
-      // 하루동안 유효
-      maxAge: 259200000,
-      httpOnly: true,
-      secure: true,
-      sameSite: "None",
-    });
-
-    return res.status(200).json({ sendLoginData });
-  } catch (err) {
-    return res.status(500).json("server errors!");
+  if (!foundLoginData) {
+    return res.status(401).json({ message: "Invalid Id and Pwd!" });
   }
+
+  const checkedPwd = await bcrypt.compare(
+    req.body.password,
+    foundLoginData.password
+  );
+
+  if (!checkedPwd) {
+    return res.status(401).json({ message: "Invalid Id and Pwd!" });
+  }
+
+  const { password, ...sendLoginData } = foundLoginData._doc;
+
+  const accessToken = generateAccessToken({
+    userId: sendLoginData.userId,
+    editable: sendLoginData.editable,
+  });
+  const refreshToken = generateRefreshToken({
+    userId: sendLoginData.userId,
+    editable: sendLoginData.editable,
+  });
+
+  const newTokenData = new TokenDatasModel({
+    userId: sendLoginData.userId,
+    editable: sendLoginData.editable,
+    accessToken,
+    refreshToken,
+  });
+  await newTokenData.save();
+
+  res.cookie("accessToken", accessToken, {
+    // 3시간동안 유효
+    maxAge: 10800000,
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+  });
+
+  res.cookie("refreshToken", refreshToken, {
+    // 하루동안 유효
+    maxAge: 259200000,
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+  });
+
+  return res.status(200).json({ sendLoginData });
 };
 
 const logOut = async (req, res, next) => {
-  try {
-    const { userId } = req.body;
-    const foundTokenData = await TokenDatasModel.findOneAndDelete({
-      userId,
-    });
-    return res.status(200).json(foundTokenData);
-  } catch (error) {
-    return res.status(500).json("server errors!");
+  const { userId } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ message: "Bad Request!" });
   }
+
+  const foundTokenData = await TokenDatasModel.findOneAndDelete({
+    userId,
+  });
+
+  if (!foundTokenData) {
+    return res.status(404).json({ message: "Not Found!" });
+  }
+
+  return res.status(200).json(foundTokenData);
 };
 
 const signUp = async (req, res, next) => {
@@ -150,70 +152,64 @@ const update = async (req, res, next) => {
     });
 
     if (!foundOriginData) {
-      return res.status(401).send("You can only set your own data!");
+      return res
+        .status(401)
+        .json({ message: "You can only set your own data!" });
     }
 
-    try {
-      const updatedLoginData = await LoginDatasModel.findByIdAndUpdate(
-        foundOriginData.id,
-        {
-          userId: req.body.updatedId,
-          password: hashedPwd,
-          email: req.body.email,
-          profilePic: req.body.profilePic,
-        },
-        { returnOriginal: false }
-      );
-      const { password, ...sendUpdatedLoginData } = updatedLoginData._doc;
-      return res.status(201).json({ sendUpdatedLoginData });
-    } catch (err) {
-      return res.status(401).send(err);
-    }
+    const updatedLoginData = await LoginDatasModel.findByIdAndUpdate(
+      foundOriginData.id,
+      {
+        userId: req.body.updatedId,
+        password: hashedPwd,
+        email: req.body.email,
+        profilePic: req.body.profilePic,
+      },
+      { returnOriginal: false }
+    );
+    const { password, ...sendUpdatedLoginData } = updatedLoginData._doc;
+    return res.status(201).json({ sendUpdatedLoginData });
   } else {
     const foundOriginData = await LoginDatasModel.findOne({
       userId: req.body.userId,
     });
 
     if (!foundOriginData) {
-      return res.status(401).send("You can only set your own data!");
+      return res
+        .status(401)
+        .json({ message: "You can only set your own data!" });
     }
 
-    try {
-      const updatedLoginData = await LoginDatasModel.findByIdAndUpdate(
-        foundOriginData.id,
-        {
-          userId: req.body.updatedId,
-          email: req.body.email,
-          profilePic: req.body.profilePic,
-        },
-        { returnOriginal: false }
-      );
-      const { password, ...sendUpdatedLoginData } = updatedLoginData._doc;
-      return res.status(201).json({ sendUpdatedLoginData });
-    } catch (err) {
-      return res.status(401).send(err);
-    }
+    const updatedLoginData = await LoginDatasModel.findByIdAndUpdate(
+      foundOriginData.id,
+      {
+        userId: req.body.updatedId,
+        email: req.body.email,
+        profilePic: req.body.profilePic,
+      },
+      { returnOriginal: false }
+    );
+    const { password, ...sendUpdatedLoginData } = updatedLoginData._doc;
+    return res.status(201).json({ sendUpdatedLoginData });
   }
 };
 
 const remove = async (req, res, next) => {
-  try {
-    const foundUserData = await LoginDatasModel.findOne({
-      userId: req.body.userId,
-    });
+  const foundUserData = await LoginDatasModel.findOne({
+    userId: req.body.userId,
+  });
 
-    if (!foundUserData) {
-      return res.status(400).json("Bad request!");
-    }
+  if (!foundUserData) {
+    return res.status(400).json({ message: "Bad request!" });
+  }
 
-    if (req.body.userId === foundUserData.userId) {
-      foundUserData.delete();
-      return res.status(204).json("UserData has been deleted!");
-    } else {
-      return res.status(401).json("You can delete own your login data!");
-    }
-  } catch (err) {
-    return res.status(401).json(err);
+  if (req.body.userId === foundUserData.userId) {
+    foundUserData.delete();
+    return res.status(204).json({ message: "UserData has been deleted!" });
+  } else {
+    return res
+      .status(401)
+      .json({ message: "You can delete own your login data!" });
   }
 };
 

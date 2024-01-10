@@ -36,7 +36,7 @@ const getAllPostsByQuery = async (req, res, next) => {
     .skip(skipAmount)
     .limit(pageSize);
 
-  if (!foundPosts) {
+  if (foundPosts.length === 0) {
     return res.status(404).json({ message: "Not Found Posts!" });
   }
 

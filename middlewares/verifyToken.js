@@ -13,20 +13,29 @@ const verifyToken = async (req, res, next) => {
   try {
     // accessToken 검증
     user = jwt.verify(accessToken, `${process.env.JWT_SECRET_KEY}`);
+
+    // accessToken 유호기간 만료 혹은 검증 실패시 과정
+    // 그리고 refreshToken 검증을 통한 accessToken, refreshToken 재발급 처리는 catch 구문 안에서 처리
   } catch (error) {
-    // accessToken 유효기간 혹은 쿠키기간 만료시 에러
-    // refreshToken 담는 cookie가 만료되었을 경우
+    // accessToken 유효기간 혹은 쿠키기간 만료시 메시지 보내주고 클라이언트측 자동 로그아웃 처리
+    if (error.message === "jwt expired") {
+      return res
+        .status(244)
+        .json({ message: "Access forbidden, invalid refreshToken" });
+    }
+    // refreshToken 담는 cookie가 예기치않게 없을 경우
     if (refreshToken === undefined) {
       await tokenDatasModel.findOneAndDelete({
         userId: req.body.userId || req.body.author,
       });
-      // 쿠키 유효기간 만료시 에러 클라이언트에게 보내서 로그아웃 신호 줄것
+      // 메시지 보내주고 클라이언트측 자동 로그아웃 처리
       return res
         .status(244)
         .json({ message: "Access forbidden, invalid refreshToken" });
     }
 
     // refreshToken을 담는 cookie가 유효기간이 남아 refreshToken이 정상적으로 살아있다면
+    // mongodb에 기존 accessToken과 refreshToken을 저장해 둔 document에서 refreshToken을 들고 온다.
     const storedToken = await tokenDatasModel.findOne({
       refreshToken,
     });
@@ -35,11 +44,11 @@ const verifyToken = async (req, res, next) => {
     try {
       jwt.verify(storedToken.refreshToken, `${process.env.JWT_SECRET_KEY}`);
     } catch (error) {
+      // refreshToken마저 유효기간 만료되었다면 mongodb에서 기존 accessToken, refreshToken 데이터 지워줄것
       if (error.message === "jwt expired") {
         await tokenDatasModel.findOneAndDelete({
           refreshToken: storedToken.refreshToken,
         });
-        // 쿠키 유효기간 만료되지 않았지만 refreshToken 검증 에러시
         // 클라이언트에게 보내서 로그아웃 신호 줄것
         return res
           .status(244)
@@ -47,6 +56,7 @@ const verifyToken = async (req, res, next) => {
       }
     }
 
+    // refreshToken 검증 성공시
     // accessToken과 refreshToken 재발급
     if (refreshToken && refreshToken === storedToken.refreshToken) {
       const newAccessToken = jwt.sign(
@@ -64,7 +74,7 @@ const verifyToken = async (req, res, next) => {
         }
       );
 
-      // mongodb 업데이트
+      // mongodb 업데이트 - accessToken과 refreshToken 재발급 데이터로 업데이트
       const updatedStoredToken = await tokenDatasModel.findOneAndUpdate(
         { accessToken: storedToken.accessToken },
         {

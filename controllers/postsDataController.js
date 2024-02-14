@@ -4,7 +4,6 @@ const getAllPostsByQuery = async (req, res, next) => {
   const catName = req.query.cat ? decodeURIComponent(req.query.cat) : null;
   const text = req.query.text ? decodeURIComponent(req.query.text) : null;
   const page = req.query.page;
-  const meta = req.query.meta;
 
   // 한페이지당 나오는 포스트 갯수
   const pageSize = 4;

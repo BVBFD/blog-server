@@ -17,12 +17,6 @@ const verifyToken = async (req, res, next) => {
     // accessToken 유호기간 만료 혹은 검증 실패시 과정
     // 그리고 refreshToken 검증을 통한 accessToken, refreshToken 재발급 처리는 catch 구문 안에서 처리
   } catch (error) {
-    // accessToken 유효기간 혹은 쿠키기간 만료시 메시지 보내주고 클라이언트측 자동 로그아웃 처리
-    if (error.message === "jwt expired") {
-      return res
-        .status(244)
-        .json({ message: "Access forbidden, invalid refreshToken" });
-    }
     // refreshToken 담는 cookie가 예기치않게 없을 경우
     if (refreshToken === undefined) {
       await tokenDatasModel.findOneAndDelete({

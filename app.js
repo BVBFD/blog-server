@@ -51,7 +51,7 @@ app.use(
     credentials: true,
   })
 );
-app.use(morgan("tiny"));
+app.use(morgan("dev"));
 app.use(cookieParser(`${process.env.COOKIE_PARSER_SECRET_KEY}`));
 
 app.get("/lee", (req, res, next) => {

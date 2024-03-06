@@ -39,12 +39,14 @@ blog-project-server
 │  └─ verifyToken.js // verifyToken accessToken, refreshToken 토큰 검증 미들웨어
 ├─ models      // MongoDB document 스키마 정의
 ├─ routes      // REST APIs http 요청 url 경로 지정 및 콜백함수 연결
+├─ services    // MongoDB에서 데이터를 직접 받고, 가공하는 역할 services 폴더에 모음
 ├─ .gitignore  // github에 올리지 않을 파일 설정
 └─ app.js      // 서버 실행 파일
 ```
 
 ## 블로그 기록 사항 - 개발 및 유지 보수
 
+- 2024.03.06 : [ 블로그 프론트 프로젝트 구조 리팩토링 ](https://lsevina126.netlify.app/post/65dbdbfb2fc009c1bf9ddb27)
 - 2024.02.02 : [ NextJS 블로그 동적 SEO 구현 여정기 ](https://lsevina126.netlify.app/post/65bcd867390620f004440afe)
 - 2024.01.05 : [ 개인 블로그 사이트 성능 개선 및 트러블 슈팅 해결 여정기 ](https://lsevina126.netlify.app/post/65979ed57a920683806df985)
 - 2023.03.29 : [ NextJS, ReactJS - Pagination 구현 ( Feat. 라이브러리 없이 구현 ) ](https://lsevina126.netlify.app/post/642350ca059244411a587631)

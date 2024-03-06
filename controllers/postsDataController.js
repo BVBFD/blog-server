@@ -1,4 +1,3 @@
-const PostDatasModel = require("../models/postDatasModel.js");
 const {
   getAllPostsByQueryService,
   getPostsByIdService,
